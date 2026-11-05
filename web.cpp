@@ -504,3 +504,101 @@ int nssm_web(int argc, TCHAR **argv) {
   WSACleanup();
   return 0;
 }
+
+static INT_PTR CALLBACK web_install_dlg(HWND dlg, UINT message, WPARAM wParam, LPARAM lParam) {
+  switch (message) {
+    case WM_INITDIALOG: {
+      centre_window(dlg);
+      HANDLE icon = LoadImage(GetModuleHandle(0), MAKEINTRESOURCE(IDI_NSSM), IMAGE_ICON, GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), 0);
+      if (icon) SendMessage(dlg, WM_SETICON, ICON_SMALL, (LPARAM) icon);
+      SetDlgItemText(dlg, IDC_PORT, _T("8080"));
+      SetFocus(GetDlgItem(dlg, IDC_PORT));
+      SendMessage(GetDlgItem(dlg, IDC_PORT), EM_SETSEL, 0, -1);
+      return FALSE;
+    }
+    case WM_COMMAND: {
+      switch (LOWORD(wParam)) {
+        case IDOK: {
+          TCHAR port_str[16];
+          GetDlgItemText(dlg, IDC_PORT, port_str, _countof(port_str));
+          int port = _ttoi(port_str);
+          if (port <= 0 || port > 65535) {
+            MessageBox(dlg, _T("Please enter a valid port between 1 and 65535."), _T("Invalid Port"), MB_OK | MB_ICONEXCLAMATION);
+            SetFocus(GetDlgItem(dlg, IDC_PORT));
+            return TRUE;
+          }
+          EndDialog(dlg, (INT_PTR) port);
+          return TRUE;
+        }
+        case IDCANCEL:
+          EndDialog(dlg, 0);
+          return TRUE;
+      }
+      break;
+    }
+  }
+  return FALSE;
+}
+
+int nssm_web_install(int port) {
+  if (port <= 0) {
+    /* Show simple GUI dialog to enter port */
+    port = (int) DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_WEB_INSTALL), NULL, web_install_dlg);
+    if (port <= 0) {
+      /* User cancelled */
+      return 0;
+    }
+  }
+
+  nssm_service_t *service = alloc_nssm_service();
+  if (! service) return 1;
+
+  set_nssm_service_defaults(service);
+  _sntprintf_s(service->name, _countof(service->name), _TRUNCATE, _T("nssm-web"));
+  _sntprintf_s(service->displayname, _countof(service->displayname), _TRUNCATE, _T("NSSM Web Service Manager"));
+  _sntprintf_s(service->description, _countof(service->description), _TRUNCATE, _T("NSSM Web Service Management Server"));
+  _sntprintf_s(service->exe, _countof(service->exe), _TRUNCATE, _T("%s"), nssm_unquoted_imagepath());
+
+  _sntprintf_s(service->dir, _countof(service->dir), _TRUNCATE, _T("%s"), service->exe);
+  strip_basename(service->dir);
+
+  _sntprintf_s(service->flags, _countof(service->flags), _TRUNCATE, _T("web %d"), port);
+
+  service->startup = NSSM_STARTUP_AUTOMATIC;
+
+  int ret = install_service(service);
+  if (ret == 0) {
+    _tprintf(_T("Service \"nssm-web\" installed successfully (auto-start on Windows startup, port %d).\n"), port);
+    /* Start service immediately */
+    TCHAR *start_argv[] = { _T("nssm-web") };
+    control_service(NSSM_SERVICE_CONTROL_START, 1, start_argv);
+    _tprintf(_T("Service \"nssm-web\" started. Web UI accessible at http://127.0.0.1:%d\n"), port);
+    if (! GetConsoleWindow()) {
+      TCHAR msg[256];
+      _sntprintf_s(msg, _countof(msg), _TRUNCATE, _T("NSSM Web Service installed and started on port %d.\nIt will automatically start with Windows."), port);
+      MessageBox(NULL, msg, _T("NSSM Web Service Installed"), MB_OK | MB_ICONINFORMATION);
+    }
+  }
+
+  cleanup_nssm_service(service);
+  return ret;
+}
+
+int nssm_web_remove() {
+  nssm_service_t *service = alloc_nssm_service();
+  if (! service) return 1;
+
+  set_nssm_service_defaults(service);
+  _sntprintf_s(service->name, _countof(service->name), _TRUNCATE, _T("nssm-web"));
+
+  /* Stop service first */
+  TCHAR *stop_argv[] = { _T("nssm-web") };
+  control_service(SERVICE_CONTROL_STOP, 1, stop_argv);
+
+  int ret = remove_service(service);
+  if (ret == 0) {
+    _tprintf(_T("Service \"nssm-web\" removed successfully.\n"));
+  }
+  cleanup_nssm_service(service);
+  return ret;
+}

@@ -73,14 +73,16 @@
 #define IDC_REDIRECT_HOOK               1052
 #define IDC_VIRTUAL_SERVICE             1053
 #define IDC_TIMESTAMP                   1054
+#define IDD_WEB_INSTALL                 117
+#define IDC_PORT                        1055
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        117
+#define _APS_NEXT_RESOURCE_VALUE        118
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1055
+#define _APS_NEXT_CONTROL_VALUE         1056
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -348,12 +348,14 @@ SC_HANDLE open_service(SC_HANDLE services, TCHAR *service_name, unsigned long ac
   unsigned long error = GetLastError();
   if (error != ERROR_SERVICE_DOES_NOT_EXIST) {
     print_message(stderr, NSSM_MESSAGE_OPENSERVICE_FAILED, error_string(GetLastError()));
+    if (error == ERROR_ACCESS_DENIED) print_message(stderr, NSSM_MESSAGE_NOT_ADMINISTRATOR_CANNOT_MANAGE);
     return 0;
   }
 
   /* We can't look for a display name because there's no buffer to store it. */
   if (! canonical_name) {
     print_message(stderr, NSSM_MESSAGE_OPENSERVICE_FAILED, error_string(GetLastError()));
+    if (error == ERROR_ACCESS_DENIED) print_message(stderr, NSSM_MESSAGE_NOT_ADMINISTRATOR_CANNOT_MANAGE);
     return 0;
   }
 

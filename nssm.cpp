@@ -295,7 +295,25 @@ int _tmain(int argc, TCHAR **argv) {
     }
     if (str_equiv(argv[1], _T("list"))) nssm_exit(list_nssm_services(argc - 2, argv + 2));
     if (str_equiv(argv[1], _T("processes"))) nssm_exit(service_process_tree(argc - 2, argv + 2));
-    if (str_equiv(argv[1], _T("web"))) nssm_exit(nssm_web(argc - 2, argv + 2));
+    if (str_equiv(argv[1], _T("web"))) {
+      if (argc > 2 && (str_equiv(argv[2], _T("install")) || str_equiv(argv[2], _T("setup")))) {
+        if (! is_admin) nssm_exit(elevate(argc, argv, NSSM_MESSAGE_NOT_ADMINISTRATOR_CANNOT_INSTALL));
+        int port = 0;
+        if (argc > 3) port = _ttoi(argv[3]);
+        nssm_exit(nssm_web_install(port));
+      }
+      if (argc > 2 && (str_equiv(argv[2], _T("remove")) || str_equiv(argv[2], _T("uninstall")))) {
+        if (! is_admin) nssm_exit(elevate(argc, argv, NSSM_MESSAGE_NOT_ADMINISTRATOR_CANNOT_REMOVE));
+        nssm_exit(nssm_web_remove());
+      }
+      nssm_exit(nssm_web(argc - 2, argv + 2));
+    }
+    if (str_equiv(argv[1], _T("install-web"))) {
+      if (! is_admin) nssm_exit(elevate(argc, argv, NSSM_MESSAGE_NOT_ADMINISTRATOR_CANNOT_INSTALL));
+      int port = 0;
+      if (argc > 2) port = _ttoi(argv[2]);
+      nssm_exit(nssm_web_install(port));
+    }
     if (str_equiv(argv[1], _T("remove"))) {
       if (! is_admin) nssm_exit(elevate(argc, argv, NSSM_MESSAGE_NOT_ADMINISTRATOR_CANNOT_REMOVE));
       nssm_exit(pre_remove_service(argc - 2, argv + 2));

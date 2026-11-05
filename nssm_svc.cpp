@@ -292,7 +292,11 @@ NSSM_SVC_API int nssm_svc_control(const wchar_t *service_name, const wchar_t *ac
   if (! scm) {
     DWORD err = GetLastError();
     char buf[256];
-    sprintf_s(buf, sizeof(buf), "{\"success\":false,\"error\":\"OpenSCManager failed with error %lu\"}", err);
+    if (err == ERROR_ACCESS_DENIED) {
+      sprintf_s(buf, sizeof(buf), "{\"success\":false,\"error\":\"Access denied. Please run as Administrator.\",\"errorCode\":%lu}", err);
+    } else {
+      sprintf_s(buf, sizeof(buf), "{\"success\":false,\"error\":\"OpenSCManager failed with error %lu\",\"errorCode\":%lu}", err, err);
+    }
     json_append_raw(&j, buf);
     *out_json = j.buf;
     return err;
@@ -309,7 +313,11 @@ NSSM_SVC_API int nssm_svc_control(const wchar_t *service_name, const wchar_t *ac
     DWORD err = GetLastError();
     CloseServiceHandle(scm);
     char buf[256];
-    sprintf_s(buf, sizeof(buf), "{\"success\":false,\"error\":\"OpenService failed: access denied or service not found (code %lu)\"}", err);
+    if (err == ERROR_ACCESS_DENIED) {
+      sprintf_s(buf, sizeof(buf), "{\"success\":false,\"error\":\"Access denied: Administrator privileges required to manage this service. Please run as Administrator.\",\"errorCode\":%lu}", err);
+    } else {
+      sprintf_s(buf, sizeof(buf), "{\"success\":false,\"error\":\"OpenService failed: service not found or unavailable (code %lu)\",\"errorCode\":%lu}", err, err);
+    }
     json_append_raw(&j, buf);
     *out_json = j.buf;
     return err;
