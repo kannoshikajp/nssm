@@ -34,8 +34,13 @@
 
 #define _WIN32_WINNT 0x0500
 
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
 #define APSTUDIO_HIDDEN_SYMBOLS
 #include <windows.h>
+#include <commdlg.h>
+#include <shellapi.h>
 #include <prsht.h>
 #undef APSTUDIO_HIDDEN_SYMBOLS
 #include <commctrl.h>
@@ -60,6 +65,7 @@
 #include "settings.h"
 #include "io.h"
 #include "gui.h"
+#include "web.h"
 #endif
 
 void nssm_exit(int);
@@ -70,6 +76,7 @@ int str_number(const TCHAR *, unsigned long *, TCHAR **);
 int str_number(const TCHAR *, unsigned long *);
 int num_cpus();
 int usage(int);
+int nssm_web(int, TCHAR **);
 const TCHAR *nssm_unquoted_imagepath();
 const TCHAR *nssm_imagepath();
 const TCHAR *nssm_exe();

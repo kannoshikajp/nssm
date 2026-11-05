@@ -1,0 +1,24 @@
+# Build output
+out/
+tmp/
+*.obj
+*.exe
+*.dll
+*.pdb
+*.lib
+*.exp
+*.ilk
+*.tlog
+
+# Generated files
+version.h
+messages.h
+messages.rc
+MSG*.bin
+
+# Visual Studio
+.vs/
+Backup/
+UpgradeLog.htm
+*.user
+*.suo
