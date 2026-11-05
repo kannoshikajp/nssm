@@ -266,6 +266,9 @@ int _tmain(int argc, TCHAR **argv) {
       _tprintf(_T("%s %s %s %s\n"), NSSM, NSSM_VERSION, NSSM_CONFIGURATION, NSSM_DATE);
       nssm_exit(0);
     }
+    if (str_equiv(argv[1], _T("help")) || str_equiv(argv[1], _T("--help")) || str_equiv(argv[1], _T("-h")) || str_equiv(argv[1], _T("/?"))) {
+      nssm_exit(usage(0));
+    }
     if (str_equiv(argv[1], _T("start"))) nssm_exit(control_service(NSSM_SERVICE_CONTROL_START, argc - 2, argv + 2));
     if (str_equiv(argv[1], _T("stop"))) nssm_exit(control_service(SERVICE_CONTROL_STOP, argc - 2, argv + 2));
     if (str_equiv(argv[1], _T("restart"))) {
